@@ -1,0 +1,16 @@
+{
+  "name": "ultrawatchtogether",
+  "version": "0.1.0",
+  "private": true,
+  "description": "UltraWatchTogether - low-latency desktop watch-together via WebRTC",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "uuid": "^9.0.1",
+    "ws": "^8.17.1"
+  }
+}
