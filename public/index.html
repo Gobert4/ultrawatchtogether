@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>UltraWatchTogether</title>
+  <link rel="stylesheet" href="/style.css"/>
+</head>
+<body>
+  <header class="header">
+    <div class="brand">UltraWatchTogether</div>
+    <div class="tag">Low-latency desktop watch-together (WebRTC)</div>
+  </header>
+
+  <main class="layout">
+    <section class="card">
+      <h2>Session</h2>
+
+      <div class="row">
+        <label class="label" for="name">Your name</label>
+        <input id="name" class="input" placeholder="e.g. Julien" maxlength="40"/>
+      </div>
+
+      <div class="row">
+        <button id="createRoomBtn" class="btn primary">Create room (Host)</button>
+        <span class="or">or</span>
+        <input id="roomIdInput" class="input" placeholder="Room ID" maxlength="40"/>
+        <button id="joinRoomBtn" class="btn">Join room (Viewer)</button>
+      </div>
+
+      <div id="roomInfo" class="roomInfo hidden">
+        <div class="row">
+          <div>
+            <div class="smallLabel">Room</div>
+            <div id="roomIdText" class="mono"></div>
+          </div>
+          <div>
+            <div class="smallLabel">Invite link</div>
+            <div class="invite">
+              <input id="inviteLink" class="input mono" readonly/>
+              <button id="copyInviteBtn" class="btn">Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="hostControls" class="hostControls hidden">
+        <div class="row">
+          <label class="check"><input id="includeSystemAudio" type="checkbox" checked/> Include system/tab audio</label>
+          <label class="check"><input id="includeMic" type="checkbox"/> Include microphone</label>
+        </div>
+
+        <div class="row">
+          <label class="label" for="quality">Quality</label>
+          <select id="quality" class="input">
+            <option value="720p30">720p @ 30fps</option>
+            <option value="1080p30" selected>1080p @ 30fps</option>
+            <option value="1080p60">1080p @ 60fps</option>
+            <option value="1440p30">1440p @ 30fps</option>
+          </select>
+
+          <button id="startShareBtn" class="btn primary">Start sharing</button>
+          <button id="stopShareBtn" class="btn danger hidden">Stop</button>
+        </div>
+
+        <div class="hint">
+          Tip: For best audio capture, share a <b>browser tab</b> that contains video (Chrome) or ensure “Share system audio” is enabled in the share picker (Windows).
+        </div>
+      </div>
+
+      <div id="status" class="status">Not connected.</div>
+    </section>
+
+    <section class="card videoCard">
+      <h2>Stream</h2>
+      <div class="videoWrap">
+        <video id="video" autoplay playsinline></video>
+      </div>
+      <div class="row between">
+        <button id="fullscreenBtn" class="btn">Fullscreen</button>
+        <div id="stats" class="mono small"></div>
+      </div>
+    </section>
+
+    <section class="card chatCard">
+      <h2>Chat</h2>
+      <div id="chatLog" class="chatLog"></div>
+      <div class="row">
+        <input id="chatInput" class="input" placeholder="Type message and hit Enter…" maxlength="2000"/>
+        <button id="sendChatBtn" class="btn">Send</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span class="small">This is a prototype. For friends across the internet you may need TURN for reliable connectivity.</span>
+  </footer>
+
+  <script src="/client.js"></script>
+</body>
+</html>
