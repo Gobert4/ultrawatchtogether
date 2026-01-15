@@ -40,6 +40,7 @@ let screenStream = null;
 let micStream = null;
 // peerConnections[peerId] = RTCPeerConnection
 const peerConnections = {};
+const pendingViewers = new Set(); // viewerIds that joined before host started sharing
 let statsInterval = null;
 
 function setStatus(text) {
@@ -164,11 +165,24 @@ function makePeerConnection(remoteId) {
     // console.log("pc state", remoteId, pc.connectionState);
   };
 
+  pc.oniceconnectionstatechange = () => {
+    // Helpful status updates for troubleshooting connectivity (NAT/firewalls)
+    if (pc.iceConnectionState === "failed" || pc.iceConnectionState === "disconnected") {
+      setStatus(`Connection issue (${pc.iceConnectionState}). You may need TURN for some networks.`);
+    }
+  };
+
   pc.ontrack = (event) => {
     // Viewer will receive stream tracks here
     if (role === "viewer") {
       const [stream] = event.streams;
-      if (stream) videoEl.srcObject = stream;
+      if (stream) {
+        videoEl.srcObject = stream;
+        // Ensure playback starts even under autoplay restrictions
+        videoEl.play().catch(() => {
+          // user may need to click the video once to start
+        });
+      }
     }
   };
 
@@ -186,7 +200,8 @@ function addLocalTracks(pc) {
 
 async function hostCreateOfferForViewer(viewerId) {
   if (!screenStream) {
-    appendChat({ system: true, message: "Viewer joined, but you haven't started sharing yet." });
+    pendingViewers.add(viewerId);
+    appendChat({ system: true, message: "Viewer joined. Start sharing to send video/audio." });
     return;
   }
 
@@ -264,6 +279,14 @@ async function startSharing() {
 
     // Show preview
     videoEl.srcObject = screenStream;
+
+    // If viewers joined before we started sharing, create offers now.
+    if (role === "host" && pendingViewers.size) {
+      for (const vid of pendingViewers) {
+        hostCreateOfferForViewer(vid).catch((e) => console.error(e));
+      }
+      pendingViewers.clear();
+    }
 
     // If the host stops screen-share via browser UI, tear down.
     const vTrack = screenStream.getVideoTracks()[0];
@@ -366,6 +389,17 @@ function handleWsMessage(raw) {
   if (msg.type === "joined") {
     setStatus(`Connected as ${msg.role}. Room: ${msg.roomId}`);
     if (msg.hostId) hostId = msg.hostId;
+    // If we are host and some viewers already joined, remember them.
+    if (role === "host" && Array.isArray(msg.roster)) {
+      for (const m of msg.roster) {
+        if (m && m.role === "viewer" && m.id) pendingViewers.add(m.id);
+      }
+      // If we are already sharing, immediately create offers
+      if (screenStream) {
+        for (const vid of pendingViewers) hostCreateOfferForViewer(vid).catch((e) => console.error(e));
+        pendingViewers.clear();
+      }
+    }
     return;
   }
 
